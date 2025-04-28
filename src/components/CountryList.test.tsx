@@ -261,4 +261,90 @@ describe("CountryList", () => {
       expect(screen.queryByText("Official Name:")).not.toBeInTheDocument();
     });
   });
+
+  describe("Favorites", () => {
+    const mockCountry = {
+      name: { common: "Testland", official: "Republic of Testland" },
+      flags: { png: "flag.png", svg: "flag.svg", alt: "Flag of Testland" },
+      population: 1000000,
+      region: "Test Region",
+      subregion: "Test Subregion",
+      capital: ["Test Capital"],
+    };
+
+    beforeEach(() => {
+      window.fetch = vi.fn(() =>
+        Promise.resolve({
+          json: () => Promise.resolve([mockCountry]),
+        })
+      ) as any;
+      // Clear localStorage before each test
+      localStorage.clear();
+    });
+
+    test("shows favorite button in country list", async () => {
+      render(<CountryList />);
+      await screen.findByText("Testland");
+      expect(
+        screen.getByRole("button", { name: /favorite/i })
+      ).toBeInTheDocument();
+    });
+
+    test("toggles favorite status when favorite button is clicked", async () => {
+      render(<CountryList />);
+      await screen.findByText("Testland");
+
+      const favoriteButton = screen.getByRole("button", { name: /favorite/i });
+      expect(favoriteButton).toHaveTextContent(/add to favorites/i);
+
+      fireEvent.click(favoriteButton);
+      expect(favoriteButton).toHaveTextContent(/remove from favorites/i);
+
+      fireEvent.click(favoriteButton);
+      expect(favoriteButton).toHaveTextContent(/add to favorites/i);
+    });
+
+    test("persists favorites across navigation", async () => {
+      render(<CountryList />);
+      await screen.findByText("Testland");
+
+      // Add to favorites
+      fireEvent.click(screen.getByRole("button", { name: /favorite/i }));
+
+      // Navigate to details view
+      fireEvent.click(screen.getByText("Testland"));
+
+      // Navigate back to list view
+      fireEvent.click(screen.getByRole("button", { name: /back/i }));
+
+      // Verify favorite status is preserved
+      expect(
+        screen.getByRole("button", { name: /favorite/i })
+      ).toHaveTextContent(/remove from favorites/i);
+    });
+
+    test("shows favorites view when favorites tab is clicked", async () => {
+      render(<CountryList />);
+      await screen.findByText("Testland");
+
+      // Add to favorites
+      fireEvent.click(screen.getByRole("button", { name: /favorite/i }));
+
+      // Click favorites tab
+      fireEvent.click(screen.getByRole("tab", { name: /favorites/i }));
+
+      // Verify favorite country is shown
+      expect(screen.getByText("Testland")).toBeInTheDocument();
+    });
+
+    test("shows empty state when no favorites exist", async () => {
+      render(<CountryList />);
+
+      // Click favorites tab
+      fireEvent.click(screen.getByRole("tab", { name: /favorites/i }));
+
+      // Verify empty state message
+      expect(screen.getByText(/no favorite countries/i)).toBeInTheDocument();
+    });
+  });
 });
