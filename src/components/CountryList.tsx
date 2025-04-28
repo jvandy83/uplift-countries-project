@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FaHeart, FaRegHeart, FaStar, FaRegStar } from "react-icons/fa";
 
 type Country = {
   name: {
@@ -164,7 +165,14 @@ const CountryList = () => {
   return (
     <div>
       <div style={{ marginBottom: "1rem" }}>
-        <div role="tablist" style={{ marginBottom: "1rem" }}>
+        <div
+          role="tablist"
+          style={{
+            marginBottom: "1rem",
+            display: "flex",
+            justifyContent: "space-around",
+          }}
+        >
           <button
             role="tab"
             aria-selected={activeTab === "all"}
@@ -229,11 +237,24 @@ const CountryList = () => {
                 </div>
                 <button
                   onClick={() => toggleFavorite(country.name.common)}
-                  style={{ alignSelf: "flex-start" }}
+                  style={{
+                    alignSelf: "flex-start",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: "0.5rem",
+                  }}
+                  aria-label={
+                    favorites.has(country.name.common)
+                      ? "Remove from favorites"
+                      : "Add to favorites"
+                  }
                 >
-                  {favorites.has(country.name.common)
-                    ? "Remove from Favorites"
-                    : "Add to Favorites"}
+                  {favorites.has(country.name.common) ? (
+                    <FaHeart color="red" size={20} />
+                  ) : (
+                    <FaRegHeart color="gray" size={20} />
+                  )}
                 </button>
               </div>
             </div>
@@ -307,9 +328,24 @@ const CountryList = () => {
                     </div>
                     <button
                       onClick={() => toggleFavorite(country.name.common)}
-                      style={{ alignSelf: "flex-start" }}
+                      style={{
+                        alignSelf: "flex-start",
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: "0.5rem",
+                      }}
+                      aria-label={
+                        favorites.has(country.name.common)
+                          ? "Remove from favorites"
+                          : "Add to favorites"
+                      }
                     >
-                      Remove from Favorites
+                      {favorites.has(country.name.common) ? (
+                        <FaHeart color="red" size={20} />
+                      ) : (
+                        <FaRegHeart color="gray" size={20} />
+                      )}
                     </button>
                   </div>
                 </div>
