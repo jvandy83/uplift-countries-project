@@ -6,7 +6,6 @@ A modern React application for exploring country data using the [REST Countries 
 
 - Browse countries with pagination
 - View detailed country information
-- Search and filter countries
 - Mark countries as favorites
 - Responsive design for all devices
 - Error handling and loading states
@@ -19,7 +18,7 @@ A modern React application for exploring country data using the [REST Countries 
 - Vite
 - Vitest for testing
 - React Testing Library
-- Tailwind CSS for styling
+- React Icons for UI icons
 
 ## Getting Started
 
