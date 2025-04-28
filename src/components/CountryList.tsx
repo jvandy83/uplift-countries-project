@@ -34,7 +34,7 @@ const CountryList = () => {
           </div>
           <div>Region: {country.region}</div>
           <div>Population: {country.population.toLocaleString()}</div>
-          <div>Capital: {country.capital[0]}</div>
+          <div>Capital: {country.capital?.[0] || "N/A"}</div>
         </div>
       ))}
     </div>
