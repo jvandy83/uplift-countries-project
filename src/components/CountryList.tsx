@@ -1,11 +1,20 @@
 import { useEffect, useState } from "react";
 
 type Country = {
-  name: { common: string; official: string };
+  name: {
+    common: string;
+    official: string;
+    nativeName?: { [key: string]: { official: string; common: string } };
+  };
   flags: { png: string; svg: string; alt: string };
   population: number;
   region: string;
+  subregion: string;
   capital: string[];
+  languages?: { [key: string]: string };
+  currencies?: { [key: string]: { name: string; symbol: string } };
+  timezones: string[];
+  borders?: string[];
 };
 
 const ITEMS_PER_PAGE_OPTIONS = [5, 10, 20, 50];
@@ -15,6 +24,7 @@ const CountryList = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
 
   const fetchCountries = async () => {
     try {
@@ -55,6 +65,44 @@ const CountryList = () => {
     return <div>Loading countries...</div>;
   }
 
+  if (selectedCountry) {
+    return (
+      <div>
+        <button onClick={() => setSelectedCountry(null)}>Back</button>
+        <div style={{ marginTop: "1rem" }}>
+          <img
+            src={selectedCountry.flags.png}
+            alt={selectedCountry.flags.alt}
+            width={100}
+          />
+          <h2>{selectedCountry.name.common}</h2>
+          <p>Official Name: {selectedCountry.name.official}</p>
+          <p>Population: {selectedCountry.population.toLocaleString()}</p>
+          <p>Region: {selectedCountry.region}</p>
+          <p>Subregion: {selectedCountry.subregion}</p>
+          <p>Capital: {selectedCountry.capital?.[0] || "N/A"}</p>
+          {selectedCountry.languages && (
+            <p>
+              Languages: {Object.values(selectedCountry.languages).join(", ")}
+            </p>
+          )}
+          {selectedCountry.currencies && (
+            <p>
+              Currencies:{" "}
+              {Object.values(selectedCountry.currencies)
+                .map((c) => `${c.name} (${c.symbol})`)
+                .join(", ")}
+            </p>
+          )}
+          <p>Timezones: {selectedCountry.timezones.join(", ")}</p>
+          {selectedCountry.borders && selectedCountry.borders.length > 0 && (
+            <p>Borders: {selectedCountry.borders.join(", ")}</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   const totalPages = Math.ceil(countries.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -93,7 +141,13 @@ const CountryList = () => {
       {visibleCountries.map((country) => (
         <div
           key={country.name.common}
-          style={{ border: "1px solid #ccc", margin: 8, padding: 8 }}
+          style={{
+            border: "1px solid #ccc",
+            margin: 8,
+            padding: 8,
+            cursor: "pointer",
+          }}
+          onClick={() => setSelectedCountry(country)}
         >
           <img src={country.flags.png} alt={country.flags.alt} width={32} />
           <div>
@@ -119,11 +173,9 @@ const CountryList = () => {
         >
           Previous
         </button>
-
         <span>
           Page {currentPage} of {totalPages}
         </span>
-
         <button
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
