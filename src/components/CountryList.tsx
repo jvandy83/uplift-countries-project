@@ -19,12 +19,38 @@ type Country = {
 
 const ITEMS_PER_PAGE_OPTIONS = [5, 10, 20, 50];
 
+const FAVORITES_KEY = "favorite_countries";
+
 const CountryList = () => {
   const [countries, setCountries] = useState<Country[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [activeTab, setActiveTab] = useState<"all" | "favorites">("all");
+
+  useEffect(() => {
+    // Load favorites from localStorage
+    const savedFavorites = localStorage.getItem(FAVORITES_KEY);
+    if (savedFavorites) {
+      setFavorites(new Set(JSON.parse(savedFavorites)));
+    }
+  }, []);
+
+  const toggleFavorite = (countryName: string) => {
+    const newFavorites = new Set(favorites);
+    if (newFavorites.has(countryName)) {
+      newFavorites.delete(countryName);
+    } else {
+      newFavorites.add(countryName);
+    }
+    setFavorites(newFavorites);
+    localStorage.setItem(
+      FAVORITES_KEY,
+      JSON.stringify(Array.from(newFavorites))
+    );
+  };
 
   const fetchCountries = async () => {
     try {
@@ -65,6 +91,11 @@ const CountryList = () => {
     return <div>Loading countries...</div>;
   }
 
+  const filteredCountries =
+    activeTab === "favorites"
+      ? countries.filter((country) => favorites.has(country.name.common))
+      : countries;
+
   if (selectedCountry) {
     return (
       <div>
@@ -76,6 +107,14 @@ const CountryList = () => {
             width={100}
           />
           <h2>{selectedCountry.name.common}</h2>
+          <button
+            onClick={() => toggleFavorite(selectedCountry.name.common)}
+            style={{ marginBottom: "1rem" }}
+          >
+            {favorites.has(selectedCountry.name.common)
+              ? "Remove from Favorites"
+              : "Add to Favorites"}
+          </button>
           <p>Official Name: {selectedCountry.name.official}</p>
           <p>Population: {selectedCountry.population.toLocaleString()}</p>
           <p>Region: {selectedCountry.region}</p>
@@ -103,10 +142,10 @@ const CountryList = () => {
     );
   }
 
-  const totalPages = Math.ceil(countries.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredCountries.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const visibleCountries = countries.slice(startIndex, endIndex);
+  const visibleCountries = filteredCountries.slice(startIndex, endIndex);
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
@@ -125,63 +164,159 @@ const CountryList = () => {
   return (
     <div>
       <div style={{ marginBottom: "1rem" }}>
-        <select
-          value={itemsPerPage}
-          onChange={handleItemsPerPageChange}
-          aria-label="Items per page"
-        >
-          {ITEMS_PER_PAGE_OPTIONS.map((option) => (
-            <option key={option} value={option}>
-              {option} per page
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {visibleCountries.map((country) => (
-        <div
-          key={country.name.common}
-          style={{
-            border: "1px solid #ccc",
-            margin: 8,
-            padding: 8,
-            cursor: "pointer",
-          }}
-          onClick={() => setSelectedCountry(country)}
-        >
-          <img src={country.flags.png} alt={country.flags.alt} width={32} />
-          <div>
-            <strong>{country.name.common}</strong>
-          </div>
-          <div>Region: {country.region}</div>
-          <div>Population: {country.population.toLocaleString()}</div>
-          <div>Capital: {country.capital?.[0] || "N/A"}</div>
+        <div role="tablist" style={{ marginBottom: "1rem" }}>
+          <button
+            role="tab"
+            aria-selected={activeTab === "all"}
+            onClick={() => setActiveTab("all")}
+            aria-controls="all-countries-tabpanel"
+            id="all-countries-tab"
+          >
+            All Countries
+          </button>
+          <button
+            role="tab"
+            aria-selected={activeTab === "favorites"}
+            onClick={() => setActiveTab("favorites")}
+            aria-controls="favorites-tabpanel"
+            id="favorites-tab"
+          >
+            Favorites
+          </button>
         </div>
-      ))}
 
-      <div
-        style={{
-          marginTop: "1rem",
-          display: "flex",
-          alignItems: "center",
-          gap: "1rem",
-        }}
-      >
-        <button
-          onClick={() => handlePageChange(currentPage - 1)}
-          disabled={currentPage === 1}
+        <div
+          role="tabpanel"
+          id="all-countries-tabpanel"
+          aria-labelledby="all-countries-tab"
+          hidden={activeTab !== "all"}
         >
-          Previous
-        </button>
-        <span>
-          Page {currentPage} of {totalPages}
-        </span>
-        <button
-          onClick={() => handlePageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
+          <select
+            value={itemsPerPage}
+            onChange={handleItemsPerPageChange}
+            aria-label="Items per page"
+          >
+            {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+              <option key={option} value={option}>
+                {option} per page
+              </option>
+            ))}
+          </select>
+
+          {visibleCountries.map((country) => (
+            <div
+              key={country.name.common}
+              style={{
+                border: "1px solid #ccc",
+                margin: 8,
+                padding: 8,
+                cursor: "pointer",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <div onClick={() => setSelectedCountry(country)}>
+                  <img
+                    src={country.flags.png}
+                    alt={country.flags.alt}
+                    width={32}
+                  />
+                  <div>
+                    <strong>{country.name.common}</strong>
+                  </div>
+                  <div>Region: {country.region}</div>
+                  <div>Population: {country.population.toLocaleString()}</div>
+                  <div>Capital: {country.capital?.[0] || "N/A"}</div>
+                </div>
+                <button
+                  onClick={() => toggleFavorite(country.name.common)}
+                  style={{ alignSelf: "flex-start" }}
+                >
+                  {favorites.has(country.name.common)
+                    ? "Remove from Favorites"
+                    : "Add to Favorites"}
+                </button>
+              </div>
+            </div>
+          ))}
+
+          <div
+            style={{
+              marginTop: "1rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "1rem",
+            }}
+          >
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </button>
+            <span>
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+
+        <div
+          role="tabpanel"
+          id="favorites-tabpanel"
+          aria-labelledby="favorites-tab"
+          hidden={activeTab !== "favorites"}
         >
-          Next
-        </button>
+          {activeTab === "favorites" && filteredCountries.length === 0 && (
+            <div>No favorite countries yet</div>
+          )}
+
+          {activeTab === "favorites" && filteredCountries.length > 0 && (
+            <div>
+              {filteredCountries.map((country) => (
+                <div
+                  key={country.name.common}
+                  style={{
+                    border: "1px solid #ccc",
+                    margin: 8,
+                    padding: 8,
+                    cursor: "pointer",
+                  }}
+                >
+                  <div
+                    style={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <div onClick={() => setSelectedCountry(country)}>
+                      <img
+                        src={country.flags.png}
+                        alt={country.flags.alt}
+                        width={32}
+                      />
+                      <div>
+                        <strong>{country.name.common}</strong>
+                      </div>
+                      <div>Region: {country.region}</div>
+                      <div>
+                        Population: {country.population.toLocaleString()}
+                      </div>
+                      <div>Capital: {country.capital?.[0] || "N/A"}</div>
+                    </div>
+                    <button
+                      onClick={() => toggleFavorite(country.name.common)}
+                      style={{ alignSelf: "flex-start" }}
+                    >
+                      Remove from Favorites
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
