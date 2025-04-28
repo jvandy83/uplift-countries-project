@@ -5,6 +5,7 @@ import {
   fireEvent,
   waitFor,
   act,
+  within,
 } from "@testing-library/react";
 import { describe, test, expect, vi, beforeEach } from "vitest";
 import CountryList from "./CountryList"; // This will initially fail as the component doesn't exist
@@ -298,13 +299,16 @@ describe("CountryList", () => {
       await screen.findByText("Testland");
 
       const favoriteButton = screen.getByRole("button", { name: /favorite/i });
-      expect(favoriteButton).toHaveTextContent(/add to favorites/i);
+      expect(favoriteButton).toHaveAttribute("aria-label", "Add to favorites");
 
       fireEvent.click(favoriteButton);
-      expect(favoriteButton).toHaveTextContent(/remove from favorites/i);
+      expect(favoriteButton).toHaveAttribute(
+        "aria-label",
+        "Remove from favorites"
+      );
 
       fireEvent.click(favoriteButton);
-      expect(favoriteButton).toHaveTextContent(/add to favorites/i);
+      expect(favoriteButton).toHaveAttribute("aria-label", "Add to favorites");
     });
 
     test("persists favorites across navigation", async () => {
@@ -318,12 +322,13 @@ describe("CountryList", () => {
       fireEvent.click(screen.getByText("Testland"));
 
       // Navigate back to list view
-      fireEvent.click(screen.getByRole("button", { name: /back/i }));
+      fireEvent.click(screen.getByRole("button", { name: /back to list/i }));
 
       // Verify favorite status is preserved
-      expect(
-        screen.getByRole("button", { name: /favorite/i })
-      ).toHaveTextContent(/remove from favorites/i);
+      expect(screen.getByRole("button", { name: /favorite/i })).toHaveAttribute(
+        "aria-label",
+        "Remove from favorites"
+      );
     });
 
     test("shows favorites view when favorites tab is clicked", async () => {
@@ -336,8 +341,11 @@ describe("CountryList", () => {
       // Click favorites tab
       fireEvent.click(screen.getByRole("tab", { name: /favorites/i }));
 
-      // Verify favorite country is shown
-      expect(screen.getByText("Testland")).toBeInTheDocument();
+      // Verify favorite country is shown in the favorites view
+      const favoritesView = screen.getByRole("tabpanel", {
+        name: /favorites/i,
+      });
+      expect(within(favoritesView).getByText("Testland")).toBeInTheDocument();
     });
 
     test("shows empty state when no favorites exist", async () => {
