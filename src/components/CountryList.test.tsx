@@ -10,15 +10,40 @@ import {
 import { describe, test, expect, vi, beforeEach } from "vitest";
 import CountryList from "./CountryList"; // This will initially fail as the component doesn't exist
 
+const mockCountries = [
+  {
+    name: { common: "Mockistan", official: "Republic of Mockistan" },
+    flags: { png: "flag.png", svg: "flag.svg", alt: "Flag of Mockistan" },
+    population: 1000000,
+    region: "Test Region",
+    capital: ["Capital"],
+  },
+  {
+    name: { common: "Testland", official: "Republic of Testland" },
+    flags: { png: "flag.png", svg: "flag.svg", alt: "Flag of Testland" },
+    population: 2000000,
+    region: "Test Region",
+    capital: ["Capital"],
+  },
+];
+
 describe("CountryList", () => {
+  beforeEach(() => {
+    window.fetch = vi.fn(() =>
+      Promise.resolve({
+        json: () => Promise.resolve(mockCountries),
+      })
+    ) as any;
+  });
+
   test("should show a loading indicator initially", () => {
-    render(<CountryList />);
+    render(<CountryList onCountrySelect={() => {}} selectedCountry={null} />);
     // Expect some text like "Loading countries..." or similar
     expect(screen.getByText(/loading/i)).toBeInTheDocument();
   });
 
   test("should fetch and display a list of countries", async () => {
-    render(<CountryList />);
+    render(<CountryList onCountrySelect={() => {}} selectedCountry={null} />);
     await waitForElementToBeRemoved(() =>
       screen.queryByText(/loading countries.../i)
     );
@@ -44,7 +69,7 @@ describe("CountryList", () => {
       })
     ) as any;
 
-    render(<CountryList />);
+    render(<CountryList onCountrySelect={() => {}} selectedCountry={null} />);
     // Wait for loading to disappear
     await screen.findByText("NoCapitalia");
     expect(screen.getByText(/Capital: N\/A/i)).toBeInTheDocument();
@@ -68,7 +93,7 @@ describe("CountryList", () => {
     });
 
     test("displays pagination controls and initial page", async () => {
-      render(<CountryList />);
+      render(<CountryList onCountrySelect={() => {}} selectedCountry={null} />);
 
       // Wait for initial load
       await screen.findByText("Country 0");
@@ -92,7 +117,7 @@ describe("CountryList", () => {
     });
 
     test("navigates to next page when next button is clicked", async () => {
-      render(<CountryList />);
+      render(<CountryList onCountrySelect={() => {}} selectedCountry={null} />);
 
       await screen.findByText("Country 0");
 
@@ -111,7 +136,7 @@ describe("CountryList", () => {
     });
 
     test("changes items per page when selector is used", async () => {
-      render(<CountryList />);
+      render(<CountryList onCountrySelect={() => {}} selectedCountry={null} />);
 
       await screen.findByText("Country 0");
 
@@ -137,7 +162,7 @@ describe("CountryList", () => {
       // Mock a failed fetch
       window.fetch = vi.fn(() => Promise.reject(new Error("Failed to fetch")));
 
-      render(<CountryList />);
+      render(<CountryList onCountrySelect={() => {}} selectedCountry={null} />);
 
       // Wait for error message to appear
       await screen.findByText(/error loading countries/i);
@@ -154,7 +179,7 @@ describe("CountryList", () => {
       // First mock a failed fetch
       window.fetch = vi.fn(() => Promise.reject(new Error("Failed to fetch")));
 
-      render(<CountryList />);
+      render(<CountryList onCountrySelect={() => {}} selectedCountry={null} />);
 
       // Wait for error state
       await screen.findByText(/error loading countries/i);
@@ -219,48 +244,69 @@ describe("CountryList", () => {
     });
 
     test("shows country details when a country is clicked", async () => {
-      render(<CountryList />);
+      const onCountrySelect = vi.fn();
+      render(
+        <CountryList onCountrySelect={onCountrySelect} selectedCountry={null} />
+      );
 
-      // Wait for country to load
-      await screen.findByText("Testland");
+      // Wait for loading to complete
+      await waitFor(() => {
+        expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+      });
 
       // Click on the country
-      fireEvent.click(screen.getByText("Testland"));
+      await act(async () => {
+        fireEvent.click(screen.getByText("Testland"));
+      });
 
-      // Verify details are shown
-      expect(
-        screen.getByText("Official Name: Republic of Testland")
-      ).toBeInTheDocument();
-      expect(screen.getByText("Population: 1,000,000")).toBeInTheDocument();
-      expect(screen.getByText("Region: Test Region")).toBeInTheDocument();
-      expect(screen.getByText("Subregion: Test Subregion")).toBeInTheDocument();
-      expect(screen.getByText("Capital: Test Capital")).toBeInTheDocument();
-      expect(screen.getByText("Languages: English")).toBeInTheDocument();
-      expect(screen.getByText("Currencies: US Dollar ($)")).toBeInTheDocument();
-      expect(screen.getByText("Timezones: UTC+0")).toBeInTheDocument();
+      // Verify onCountrySelect was called with the country
+      expect(onCountrySelect).toHaveBeenCalledWith(mockCountry);
     });
 
-    test("shows back button in details view", async () => {
-      render(<CountryList />);
+    test("shows country details in the details view", async () => {
+      render(
+        <CountryList onCountrySelect={() => {}} selectedCountry={mockCountry} />
+      );
 
-      await screen.findByText("Testland");
-      fireEvent.click(screen.getByText("Testland"));
+      // Wait for loading to complete
+      await waitFor(() => {
+        expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+      });
 
-      expect(screen.getByRole("button", { name: /back/i })).toBeInTheDocument();
+      // Verify country details are shown
+      expect(screen.getByText("Testland")).toBeInTheDocument();
+      expect(
+        screen.getByText(/Official Name:.*Republic of Testland/i)
+      ).toBeInTheDocument();
+      expect(screen.getByText(/Population:.*1,000,000/i)).toBeInTheDocument();
+      expect(screen.getByText(/Region:.*Test Region/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Subregion:.*Test Subregion/i)
+      ).toBeInTheDocument();
+      expect(screen.getByText(/Capital:.*Test Capital/i)).toBeInTheDocument();
     });
 
     test("returns to list view when back button is clicked", async () => {
-      render(<CountryList />);
+      const onCountrySelect = vi.fn();
+      render(
+        <CountryList
+          onCountrySelect={onCountrySelect}
+          selectedCountry={mockCountry}
+        />
+      );
 
-      await screen.findByText("Testland");
-      fireEvent.click(screen.getByText("Testland"));
+      // Wait for loading to complete
+      await waitFor(() => {
+        expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+      });
 
-      // Click back button
-      fireEvent.click(screen.getByRole("button", { name: /back/i }));
+      // Click the back button
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: /back to list/i }));
+      });
 
-      // Verify we're back to list view
-      expect(screen.getByText("Testland")).toBeInTheDocument();
-      expect(screen.queryByText("Official Name:")).not.toBeInTheDocument();
+      // Verify onCountrySelect was called with null to return to list view
+      expect(onCountrySelect).toHaveBeenCalledWith(null);
     });
   });
 
@@ -287,7 +333,7 @@ describe("CountryList", () => {
     });
 
     test("shows favorite button in country list", async () => {
-      render(<CountryList />);
+      render(<CountryList onCountrySelect={() => {}} selectedCountry={null} />);
       await screen.findByText("Testland");
       expect(
         screen.getByRole("button", { name: /favorite/i })
@@ -295,7 +341,7 @@ describe("CountryList", () => {
     });
 
     test("toggles favorite status when favorite button is clicked", async () => {
-      render(<CountryList />);
+      render(<CountryList onCountrySelect={() => {}} selectedCountry={null} />);
       await screen.findByText("Testland");
 
       const favoriteButton = screen.getByRole("button", { name: /favorite/i });
@@ -312,17 +358,17 @@ describe("CountryList", () => {
     });
 
     test("persists favorites across navigation", async () => {
-      render(<CountryList />);
+      render(<CountryList onCountrySelect={() => {}} selectedCountry={null} />);
       await screen.findByText("Testland");
 
       // Add to favorites
       fireEvent.click(screen.getByRole("button", { name: /favorite/i }));
 
-      // Navigate to details view
-      fireEvent.click(screen.getByText("Testland"));
+      // Navigate to favorites tab
+      fireEvent.click(screen.getByRole("tab", { name: /favorites/i }));
 
-      // Navigate back to list view
-      fireEvent.click(screen.getByRole("button", { name: /back to list/i }));
+      // Navigate back to all countries tab
+      fireEvent.click(screen.getByRole("tab", { name: /all countries/i }));
 
       // Verify favorite status is preserved
       expect(screen.getByRole("button", { name: /favorite/i })).toHaveAttribute(
@@ -332,7 +378,7 @@ describe("CountryList", () => {
     });
 
     test("shows favorites view when favorites tab is clicked", async () => {
-      render(<CountryList />);
+      render(<CountryList onCountrySelect={() => {}} selectedCountry={null} />);
       await screen.findByText("Testland");
 
       // Add to favorites
@@ -349,7 +395,7 @@ describe("CountryList", () => {
     });
 
     test("shows empty state when no favorites exist", async () => {
-      render(<CountryList />);
+      render(<CountryList onCountrySelect={() => {}} selectedCountry={null} />);
 
       // Wait for loading to complete
       await waitFor(() => {
