@@ -5,7 +5,7 @@ import {
   fireEvent,
   waitFor,
 } from "@testing-library/react";
-import { describe, test, expect, vi } from "vitest";
+import { describe, test, expect, vi, beforeEach } from "vitest";
 import CountryList from "./CountryList"; // This will initially fail as the component doesn't exist
 
 describe("CountryList", () => {
@@ -46,37 +46,6 @@ describe("CountryList", () => {
     // Wait for loading to disappear
     await screen.findByText("NoCapitalia");
     expect(screen.getByText(/Capital: N\/A/i)).toBeInTheDocument();
-  });
-
-  test("shows paginated countries with load more button", async () => {
-    // Mock 10 countries
-    const mockCountries = Array.from({ length: 10 }, (_, i) => ({
-      name: { common: `Country ${i}`, official: `Official Country ${i}` },
-      flags: { png: "flag.png", svg: "flag.svg", alt: `Flag of Country ${i}` },
-      population: 1000000,
-      region: "Test Region",
-      capital: ["Capital"],
-    }));
-
-    window.fetch = vi.fn(() =>
-      Promise.resolve({
-        json: () => Promise.resolve(mockCountries),
-      })
-    ) as any;
-
-    render(<CountryList />);
-
-    // Wait for initial load
-    await screen.findByText("Country 0");
-
-    // Check initial pagination (e.g., first 5 countries)
-    expect(screen.getByText("Country 0")).toBeInTheDocument();
-    expect(screen.getByText("Country 4")).toBeInTheDocument();
-    expect(screen.queryByText("Country 5")).not.toBeInTheDocument();
-
-    // Check for Load More button
-    const loadMoreButton = screen.getByRole("button", { name: /load more/i });
-    expect(loadMoreButton).toBeInTheDocument();
   });
 
   describe("Enhanced Pagination", () => {
