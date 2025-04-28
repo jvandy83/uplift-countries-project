@@ -4,6 +4,7 @@ import {
   waitForElementToBeRemoved,
   fireEvent,
   waitFor,
+  act,
 } from "@testing-library/react";
 import { describe, test, expect, vi, beforeEach } from "vitest";
 import CountryList from "./CountryList"; // This will initially fail as the component doesn't exist
@@ -270,6 +271,8 @@ describe("CountryList", () => {
       region: "Test Region",
       subregion: "Test Subregion",
       capital: ["Test Capital"],
+      timezones: ["UTC+0"],
+      borders: [],
     };
 
     beforeEach(() => {
@@ -340,11 +343,23 @@ describe("CountryList", () => {
     test("shows empty state when no favorites exist", async () => {
       render(<CountryList />);
 
+      // Wait for loading to complete
+      await waitFor(() => {
+        expect(
+          screen.queryByText(/loading countries.../i)
+        ).not.toBeInTheDocument();
+      });
+
       // Click favorites tab
-      fireEvent.click(screen.getByRole("tab", { name: /favorites/i }));
+      const favoritesTab = screen.getByRole("tab", { name: /favorites/i });
+      await act(async () => {
+        fireEvent.click(favoritesTab);
+      });
 
       // Verify empty state message
-      expect(screen.getByText(/no favorite countries/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/no favorite countries yet/i)
+      ).toBeInTheDocument();
     });
   });
 });
