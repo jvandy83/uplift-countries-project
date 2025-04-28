@@ -217,46 +217,66 @@ const CountryList = () => {
               style={{
                 border: "1px solid #ccc",
                 margin: 8,
-                padding: 8,
+                padding: 16,
                 cursor: "pointer",
+                borderRadius: "8px",
+                display: "flex",
+                flexDirection: "column",
+                position: "relative",
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <div onClick={() => setSelectedCountry(country)}>
-                  <img
-                    src={country.flags.png}
-                    alt={country.flags.alt}
-                    width={32}
-                  />
-                  <div>
-                    <strong>{country.name.common}</strong>
-                  </div>
-                  <div>Region: {country.region}</div>
-                  <div>Population: {country.population.toLocaleString()}</div>
-                  <div>Capital: {country.capital?.[0] || "N/A"}</div>
+              <img
+                src={country.flags.png}
+                alt={country.flags.alt}
+                style={{
+                  width: "32px",
+                  height: "auto",
+                  position: "absolute",
+                  top: 16,
+                  left: 16,
+                }}
+              />
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  textAlign: "center",
+                  marginTop: "40px",
+                  marginBottom: "40px",
+                }}
+              >
+                <div>
+                  <strong>{country.name.common}</strong>
                 </div>
-                <button
-                  onClick={() => toggleFavorite(country.name.common)}
-                  style={{
-                    alignSelf: "flex-start",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: "0.5rem",
-                  }}
-                  aria-label={
-                    favorites.has(country.name.common)
-                      ? "Remove from favorites"
-                      : "Add to favorites"
-                  }
-                >
-                  {favorites.has(country.name.common) ? (
-                    <FaHeart color="red" size={20} />
-                  ) : (
-                    <FaRegHeart color="gray" size={20} />
-                  )}
-                </button>
+                <div>Region: {country.region}</div>
+                <div>Population: {country.population.toLocaleString()}</div>
+                <div>Capital: {country.capital?.[0] || "N/A"}</div>
               </div>
+              <button
+                onClick={() => toggleFavorite(country.name.common)}
+                style={{
+                  position: "absolute",
+                  top: 16,
+                  right: 16,
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "0.5rem",
+                }}
+                aria-label={
+                  favorites.has(country.name.common)
+                    ? "Remove from favorites"
+                    : "Add to favorites"
+                }
+              >
+                {favorites.has(country.name.common) ? (
+                  <FaHeart color="red" size={20} />
+                ) : (
+                  <FaRegHeart color="gray" size={20} />
+                )}
+              </button>
             </div>
           ))}
 
@@ -266,6 +286,7 @@ const CountryList = () => {
               display: "flex",
               alignItems: "center",
               gap: "1rem",
+              justifyContent: "center",
             }}
           >
             <button
@@ -304,50 +325,66 @@ const CountryList = () => {
                   style={{
                     border: "1px solid #ccc",
                     margin: 8,
-                    padding: 8,
+                    padding: 16,
                     cursor: "pointer",
+                    borderRadius: "8px",
+                    display: "flex",
+                    flexDirection: "column",
+                    position: "relative",
                   }}
                 >
+                  <img
+                    src={country.flags.png}
+                    alt={country.flags.alt}
+                    style={{
+                      width: "32px",
+                      height: "auto",
+                      position: "absolute",
+                      top: 16,
+                      left: 16,
+                    }}
+                  />
                   <div
-                    style={{ display: "flex", justifyContent: "space-between" }}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      textAlign: "center",
+                      marginTop: "40px",
+                      marginBottom: "40px",
+                    }}
                   >
-                    <div onClick={() => setSelectedCountry(country)}>
-                      <img
-                        src={country.flags.png}
-                        alt={country.flags.alt}
-                        width={32}
-                      />
-                      <div>
-                        <strong>{country.name.common}</strong>
-                      </div>
-                      <div>Region: {country.region}</div>
-                      <div>
-                        Population: {country.population.toLocaleString()}
-                      </div>
-                      <div>Capital: {country.capital?.[0] || "N/A"}</div>
+                    <div>
+                      <strong>{country.name.common}</strong>
                     </div>
-                    <button
-                      onClick={() => toggleFavorite(country.name.common)}
-                      style={{
-                        alignSelf: "flex-start",
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        padding: "0.5rem",
-                      }}
-                      aria-label={
-                        favorites.has(country.name.common)
-                          ? "Remove from favorites"
-                          : "Add to favorites"
-                      }
-                    >
-                      {favorites.has(country.name.common) ? (
-                        <FaHeart color="red" size={20} />
-                      ) : (
-                        <FaRegHeart color="gray" size={20} />
-                      )}
-                    </button>
+                    <div>Region: {country.region}</div>
+                    <div>Population: {country.population.toLocaleString()}</div>
+                    <div>Capital: {country.capital?.[0] || "N/A"}</div>
                   </div>
+                  <button
+                    onClick={() => toggleFavorite(country.name.common)}
+                    style={{
+                      position: "absolute",
+                      top: 16,
+                      right: 16,
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      padding: "0.5rem",
+                    }}
+                    aria-label={
+                      favorites.has(country.name.common)
+                        ? "Remove from favorites"
+                        : "Add to favorites"
+                    }
+                  >
+                    {favorites.has(country.name.common) ? (
+                      <FaHeart color="red" size={20} />
+                    ) : (
+                      <FaRegHeart color="gray" size={20} />
+                    )}
+                  </button>
                 </div>
               ))}
             </div>
