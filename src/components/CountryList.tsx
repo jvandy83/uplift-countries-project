@@ -8,25 +8,88 @@ type Country = {
   capital: string[];
 };
 
+const ITEMS_PER_PAGE_OPTIONS = [5, 10, 20, 50];
+
 const CountryList = () => {
   const [countries, setCountries] = useState<Country[] | null>(null);
-  const [visibleCount, setVisibleCount] = useState(5); // Start with 5 countries
+  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+
+  const fetchCountries = async () => {
+    try {
+      setError(null);
+      const response = await fetch("https://restcountries.com/v3.1/all");
+
+      // For test mocks, response.ok might be undefined
+      if (response.ok === false) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setCountries(data);
+    } catch (err) {
+      // Handle both HTTP errors and other errors
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Failed to fetch countries");
+      }
+    }
+  };
 
   useEffect(() => {
-    fetch("https://restcountries.com/v3.1/all")
-      .then((res) => res.json())
-      .then((data) => setCountries(data));
+    fetchCountries();
   }, []);
+
+  if (error) {
+    return (
+      <div>
+        <p>Error loading countries: {error}</p>
+        <button onClick={fetchCountries}>Retry</button>
+      </div>
+    );
+  }
 
   if (!countries) {
     return <div>Loading countries...</div>;
   }
 
-  const visibleCountries = countries.slice(0, visibleCount);
-  const hasMore = visibleCount < countries.length;
+  const totalPages = Math.ceil(countries.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const visibleCountries = countries.slice(startIndex, endIndex);
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
+
+  const handleItemsPerPageChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const newItemsPerPage = Number(e.target.value);
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1); // Reset to first page when changing items per page
+  };
 
   return (
     <div>
+      <div style={{ marginBottom: "1rem" }}>
+        <select
+          value={itemsPerPage}
+          onChange={handleItemsPerPageChange}
+          aria-label="Items per page"
+        >
+          {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+            <option key={option} value={option}>
+              {option} per page
+            </option>
+          ))}
+        </select>
+      </div>
+
       {visibleCountries.map((country) => (
         <div
           key={country.name.common}
@@ -41,11 +104,33 @@ const CountryList = () => {
           <div>Capital: {country.capital?.[0] || "N/A"}</div>
         </div>
       ))}
-      {hasMore && (
-        <button onClick={() => setVisibleCount((prev) => prev + 5)}>
-          Load More
+
+      <div
+        style={{
+          marginTop: "1rem",
+          display: "flex",
+          alignItems: "center",
+          gap: "1rem",
+        }}
+      >
+        <button
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          Previous
         </button>
-      )}
+
+        <span>
+          Page {currentPage} of {totalPages}
+        </span>
+
+        <button
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 };
