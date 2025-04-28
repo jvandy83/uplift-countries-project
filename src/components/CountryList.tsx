@@ -11,11 +11,11 @@ type Country = {
 const CountryList = () => {
   const [countries, setCountries] = useState<Country[] | null>(null);
 
-  // useEffect(() => {
-  //   fetch("https://restcountries.com/v3.1/all")
-  //     .then((res) => res.json())
-  //     .then((data) => setCountries(data));
-  // }, []);
+  useEffect(() => {
+    fetch("https://restcountries.com/v3.1/all")
+      .then((res) => res.json())
+      .then((data) => setCountries(data));
+  }, []);
 
   if (!countries) {
     return <div>Loading countries...</div>;
