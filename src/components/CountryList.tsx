@@ -24,9 +24,14 @@ const CountryList = () => {
   return (
     <div>
       {countries.map((country) => (
-        <div key={country.name.common}>
+        <div
+          key={country.name.common}
+          style={{ border: "1px solid #ccc", margin: 8, padding: 8 }}
+        >
           <img src={country.flags.png} alt={country.flags.alt} width={32} />
-          <div>{country.name.common}</div>
+          <div>
+            <strong>{country.name.common}</strong>
+          </div>
           <div>Region: {country.region}</div>
           <div>Population: {country.population.toLocaleString()}</div>
           <div>Capital: {country.capital[0]}</div>
