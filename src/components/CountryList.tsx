@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { FaHeart, FaRegHeart, FaStar, FaRegStar } from "react-icons/fa";
+import CountryDetail from "./CountryDetail";
 
 type Country = {
   name: {
@@ -18,16 +19,23 @@ type Country = {
   borders?: string[];
 };
 
+type CountryListProps = {
+  onCountrySelect: (country: Country | null) => void;
+  selectedCountry: Country | null;
+};
+
 const ITEMS_PER_PAGE_OPTIONS = [5, 10, 20, 50];
 
 const FAVORITES_KEY = "favorite_countries";
 
-const CountryList = () => {
+const CountryList = ({
+  onCountrySelect,
+  selectedCountry,
+}: CountryListProps) => {
   const [countries, setCountries] = useState<Country[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
-  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState<"all" | "favorites">("all");
 
@@ -99,84 +107,12 @@ const CountryList = () => {
 
   if (selectedCountry) {
     return (
-      <div>
-        <div style={{ marginTop: "1rem" }}>
-          <img
-            src={selectedCountry.flags.png}
-            alt={selectedCountry.flags.alt}
-            style={{
-              width: "200px",
-              height: "auto",
-              marginBottom: "2rem",
-            }}
-          />
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "1rem",
-              marginBottom: "1rem",
-            }}
-          >
-            <h2 style={{ margin: 0 }}>{selectedCountry.name.common}</h2>
-            <button
-              onClick={() => toggleFavorite(selectedCountry.name.common)}
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                padding: "0.5rem",
-              }}
-              aria-label={
-                favorites.has(selectedCountry.name.common)
-                  ? "Remove from favorites"
-                  : "Add to favorites"
-              }
-            >
-              {favorites.has(selectedCountry.name.common) ? (
-                <FaHeart color="red" size={20} />
-              ) : (
-                <FaRegHeart color="gray" size={20} />
-              )}
-            </button>
-          </div>
-          <p>Official Name: {selectedCountry.name.official}</p>
-          <p>Population: {selectedCountry.population.toLocaleString()}</p>
-          <p>Region: {selectedCountry.region}</p>
-          <p>Subregion: {selectedCountry.subregion}</p>
-          <p>Capital: {selectedCountry.capital?.[0] || "N/A"}</p>
-          {selectedCountry.languages && (
-            <p>
-              Languages: {Object.values(selectedCountry.languages).join(", ")}
-            </p>
-          )}
-          {selectedCountry.currencies && (
-            <p>
-              Currencies:{" "}
-              {Object.values(selectedCountry.currencies)
-                .map((c) => `${c.name} (${c.symbol})`)
-                .join(", ")}
-            </p>
-          )}
-          <p>Timezones: {selectedCountry.timezones.join(", ")}</p>
-          {selectedCountry.borders && selectedCountry.borders.length > 0 && (
-            <p>Borders: {selectedCountry.borders.join(", ")}</p>
-          )}
-          <button
-            onClick={() => setSelectedCountry(null)}
-            style={{
-              marginTop: "2rem",
-              padding: "0.5rem 1rem",
-              borderRadius: "4px",
-              border: "1px solid #ccc",
-              cursor: "pointer",
-            }}
-          >
-            Back to List
-          </button>
-        </div>
-      </div>
+      <CountryDetail
+        country={selectedCountry}
+        isFavorite={favorites.has(selectedCountry.name.common)}
+        onToggleFavorite={() => toggleFavorite(selectedCountry.name.common)}
+        onBack={() => onCountrySelect(null)}
+      />
     );
   }
 
@@ -284,7 +220,7 @@ const CountryList = () => {
                   marginBottom: "40px",
                   cursor: "pointer",
                 }}
-                onClick={() => setSelectedCountry(country)}
+                onClick={() => onCountrySelect(country)}
               >
                 <div>
                   <strong>{country.name.common}</strong>
@@ -294,7 +230,10 @@ const CountryList = () => {
                 <div>Capital: {country.capital?.[0] || "N/A"}</div>
               </div>
               <button
-                onClick={() => toggleFavorite(country.name.common)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleFavorite(country.name.common);
+                }}
                 style={{
                   position: "absolute",
                   top: 16,
@@ -394,7 +333,7 @@ const CountryList = () => {
                       marginBottom: "40px",
                       cursor: "pointer",
                     }}
-                    onClick={() => setSelectedCountry(country)}
+                    onClick={() => onCountrySelect(country)}
                   >
                     <div>
                       <strong>{country.name.common}</strong>
@@ -404,7 +343,10 @@ const CountryList = () => {
                     <div>Capital: {country.capital?.[0] || "N/A"}</div>
                   </div>
                   <button
-                    onClick={() => toggleFavorite(country.name.common)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFavorite(country.name.common);
+                    }}
                     style={{
                       position: "absolute",
                       top: 16,
