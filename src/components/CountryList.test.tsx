@@ -129,4 +129,62 @@ describe("CountryList", () => {
       expect(screen.getByText("Page 1 of 3")).toBeInTheDocument();
     });
   });
+
+  describe("Error Handling", () => {
+    test("displays error message when fetch fails", async () => {
+      // Mock a failed fetch
+      window.fetch = vi.fn(() => Promise.reject(new Error("Failed to fetch")));
+
+      render(<CountryList />);
+
+      // Wait for error message to appear
+      await screen.findByText(/error loading countries/i);
+
+      // Verify error message is shown
+      expect(screen.getByText(/error loading countries/i)).toBeInTheDocument();
+
+      // Verify retry button is present
+      const retryButton = screen.getByRole("button", { name: /retry/i });
+      expect(retryButton).toBeInTheDocument();
+    });
+
+    test("retries fetch when retry button is clicked", async () => {
+      // First mock a failed fetch
+      window.fetch = vi.fn(() => Promise.reject(new Error("Failed to fetch")));
+
+      render(<CountryList />);
+
+      // Wait for error state
+      await screen.findByText(/error loading countries/i);
+
+      // Mock a successful fetch for the retry
+      const mockCountries = [
+        {
+          name: { common: "RetryLand", official: "RetryLand" },
+          flags: { png: "flag.png", svg: "flag.svg", alt: "Flag of RetryLand" },
+          population: 1000000,
+          region: "Test Region",
+          capital: ["Capital"],
+        },
+      ];
+
+      window.fetch = vi.fn(() =>
+        Promise.resolve({
+          json: () => Promise.resolve(mockCountries),
+        })
+      ) as any;
+
+      // Click retry button
+      fireEvent.click(screen.getByRole("button", { name: /retry/i }));
+
+      // Verify loading state appears
+      expect(screen.getByText(/loading countries.../i)).toBeInTheDocument();
+
+      // Verify successful load
+      await screen.findByText("RetryLand");
+      expect(
+        screen.queryByText(/error loading countries/i)
+      ).not.toBeInTheDocument();
+    });
+  });
 });
