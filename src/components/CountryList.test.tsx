@@ -187,4 +187,78 @@ describe("CountryList", () => {
       ).not.toBeInTheDocument();
     });
   });
+
+  describe("Country Details", () => {
+    const mockCountry = {
+      name: {
+        common: "Testland",
+        official: "Republic of Testland",
+        nativeName: {
+          eng: { official: "Republic of Testland", common: "Testland" },
+        },
+      },
+      flags: { png: "flag.png", svg: "flag.svg", alt: "Flag of Testland" },
+      population: 1000000,
+      region: "Test Region",
+      subregion: "Test Subregion",
+      capital: ["Test Capital"],
+      languages: { eng: "English" },
+      currencies: { USD: { name: "US Dollar", symbol: "$" } },
+      timezones: ["UTC+0"],
+      borders: ["BORDER1", "BORDER2"],
+    };
+
+    beforeEach(() => {
+      window.fetch = vi.fn(() =>
+        Promise.resolve({
+          json: () => Promise.resolve([mockCountry]),
+        })
+      ) as any;
+    });
+
+    test("shows country details when a country is clicked", async () => {
+      render(<CountryList />);
+
+      // Wait for country to load
+      await screen.findByText("Testland");
+
+      // Click on the country
+      fireEvent.click(screen.getByText("Testland"));
+
+      // Verify details are shown
+      expect(
+        screen.getByText("Official Name: Republic of Testland")
+      ).toBeInTheDocument();
+      expect(screen.getByText("Population: 1,000,000")).toBeInTheDocument();
+      expect(screen.getByText("Region: Test Region")).toBeInTheDocument();
+      expect(screen.getByText("Subregion: Test Subregion")).toBeInTheDocument();
+      expect(screen.getByText("Capital: Test Capital")).toBeInTheDocument();
+      expect(screen.getByText("Languages: English")).toBeInTheDocument();
+      expect(screen.getByText("Currencies: US Dollar ($)")).toBeInTheDocument();
+      expect(screen.getByText("Timezones: UTC+0")).toBeInTheDocument();
+    });
+
+    test("shows back button in details view", async () => {
+      render(<CountryList />);
+
+      await screen.findByText("Testland");
+      fireEvent.click(screen.getByText("Testland"));
+
+      expect(screen.getByRole("button", { name: /back/i })).toBeInTheDocument();
+    });
+
+    test("returns to list view when back button is clicked", async () => {
+      render(<CountryList />);
+
+      await screen.findByText("Testland");
+      fireEvent.click(screen.getByText("Testland"));
+
+      // Click back button
+      fireEvent.click(screen.getByRole("button", { name: /back/i }));
+
+      // Verify we're back to list view
+      expect(screen.getByText("Testland")).toBeInTheDocument();
+      expect(screen.queryByText("Official Name:")).not.toBeInTheDocument();
+    });
+  });
 });
