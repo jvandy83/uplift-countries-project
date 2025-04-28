@@ -100,22 +100,47 @@ const CountryList = () => {
   if (selectedCountry) {
     return (
       <div>
-        <button onClick={() => setSelectedCountry(null)}>Back</button>
         <div style={{ marginTop: "1rem" }}>
           <img
             src={selectedCountry.flags.png}
             alt={selectedCountry.flags.alt}
-            width={100}
+            style={{
+              width: "200px",
+              height: "auto",
+              marginBottom: "2rem",
+            }}
           />
-          <h2>{selectedCountry.name.common}</h2>
-          <button
-            onClick={() => toggleFavorite(selectedCountry.name.common)}
-            style={{ marginBottom: "1rem" }}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "1rem",
+              marginBottom: "1rem",
+            }}
           >
-            {favorites.has(selectedCountry.name.common)
-              ? "Remove from Favorites"
-              : "Add to Favorites"}
-          </button>
+            <h2 style={{ margin: 0 }}>{selectedCountry.name.common}</h2>
+            <button
+              onClick={() => toggleFavorite(selectedCountry.name.common)}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: "0.5rem",
+              }}
+              aria-label={
+                favorites.has(selectedCountry.name.common)
+                  ? "Remove from favorites"
+                  : "Add to favorites"
+              }
+            >
+              {favorites.has(selectedCountry.name.common) ? (
+                <FaHeart color="red" size={20} />
+              ) : (
+                <FaRegHeart color="gray" size={20} />
+              )}
+            </button>
+          </div>
           <p>Official Name: {selectedCountry.name.official}</p>
           <p>Population: {selectedCountry.population.toLocaleString()}</p>
           <p>Region: {selectedCountry.region}</p>
@@ -138,6 +163,18 @@ const CountryList = () => {
           {selectedCountry.borders && selectedCountry.borders.length > 0 && (
             <p>Borders: {selectedCountry.borders.join(", ")}</p>
           )}
+          <button
+            onClick={() => setSelectedCountry(null)}
+            style={{
+              marginTop: "2rem",
+              padding: "0.5rem 1rem",
+              borderRadius: "4px",
+              border: "1px solid #ccc",
+              cursor: "pointer",
+            }}
+          >
+            Back to List
+          </button>
         </div>
       </div>
     );
@@ -245,7 +282,9 @@ const CountryList = () => {
                   textAlign: "center",
                   marginTop: "40px",
                   marginBottom: "40px",
+                  cursor: "pointer",
                 }}
+                onClick={() => setSelectedCountry(country)}
               >
                 <div>
                   <strong>{country.name.common}</strong>
@@ -353,7 +392,9 @@ const CountryList = () => {
                       textAlign: "center",
                       marginTop: "40px",
                       marginBottom: "40px",
+                      cursor: "pointer",
                     }}
+                    onClick={() => setSelectedCountry(country)}
                   >
                     <div>
                       <strong>{country.name.common}</strong>
