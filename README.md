@@ -37,16 +37,6 @@ A modern React application for exploring country data using the [REST Countries 
    npm test
    ```
 
-## Project Structure
-
-```
-src/
-  ├── components/     # React components
-  ├── types/         # TypeScript type definitions
-  ├── utils/         # Utility functions
-  └── App.tsx        # Main application component
-```
-
 ## Testing
 
 The project follows a Test-Driven Development (TDD) approach:
